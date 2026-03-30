@@ -123,8 +123,8 @@ function App() {
             <GptAdSlot
               divId="gpt-passback-16397"
               slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_336x280_16397_140226"
-              size={[336, 280]}
-              mobileSize={[300, 250]}
+              size={[336,280]}
+              mobileSize={[336,280]}
             />
           </div>
           {blogPost.intro.map((paragraph) => (
@@ -194,7 +194,7 @@ function App() {
             <GptAdSlot
               divId="gpt-passback-16596"
               slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16596_200326"
-              size={[336, 280]}
+              size={[300,250]}
               mobileSize={[300, 250]}
             />
           </div>
