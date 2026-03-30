@@ -22,7 +22,7 @@ function AdBanner({ slot }) {
     }
 
     try {
-      ;(window.adsbygoogle = window.adsbygoogle || []).push({})
+      ; (window.adsbygoogle = window.adsbygoogle || []).push({})
       hasPushedRef.current = true
     } catch (error) {
       console.error('AdSense error', error)
@@ -53,18 +53,30 @@ function loadGptScript() {
   document.head.appendChild(script)
 }
 
-function GptAdSlot({ divId, slotPath, size }) {
+function GptAdSlot({ divId, slotPath, size, mobileSize }) {
   useEffect(() => {
     window.googletag = window.googletag || { cmd: [] }
     window.googletag.cmd.push(function () {
-      window.googletag.defineSlot(slotPath, size, divId).addService(window.googletag.pubads())
+      const slot = window.googletag.defineSlot(slotPath, size, divId)
+
+      if (mobileSize) {
+        const sizeMapping = window.googletag
+          .sizeMapping()
+          .addSize([0, 0], mobileSize)
+          .addSize([720, 0], size)
+          .build()
+
+        slot.defineSizeMapping(sizeMapping)
+      }
+
+      slot.addService(window.googletag.pubads())
       window.googletag.pubads().set('page_url', 'https://www.pikashowgames.com/')
       window.googletag.enableServices()
       window.googletag.display(divId)
     })
 
     loadGptScript()
-  }, [divId, slotPath, size])
+  }, [divId, slotPath, size, mobileSize])
 
   return <div id={divId} className="gpt-ad-slot" />
 }
@@ -79,9 +91,10 @@ function App() {
         <h1>{blogPost.hero.title}</h1>
         <div className="hero-ad-wrap">
           <GptAdSlot
-            divId="gpt-passback-16595"
-            slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_640x480_16595_200326"
-            size={[640, 480]}
+            divId="gpt-passback-16619"
+            slotPath="'/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16619_240326"
+            size={[300,250]}
+            mobileSize={[300, 250]}
           />
         </div>
         <p className="hero-summary">{blogPost.hero.summary}</p>
@@ -106,13 +119,14 @@ function App() {
 
       <main className="article-flow">
         <section className="article-section article-intro">
-           <div className="hero-ad-wrap">
-          <GptAdSlot
-            divId="gpt-passback-16397"
-            slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_336x280_16397_140226"
-            size={[336,280]}
-          />
-        </div>
+          <div className="hero-ad-wrap">
+            <GptAdSlot
+              divId="gpt-passback-16397"
+              slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_336x280_16397_140226"
+              size={[336, 280]}
+              mobileSize={[300, 250]}
+            />
+          </div>
           {blogPost.intro.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
@@ -186,7 +200,14 @@ function App() {
             ))}
           </ul>
         </section>
-
+        <div className="hero-ad-wrap">
+          <GptAdSlot
+            divId="gpt-passback-16595"
+            slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_640x480_16595_200326"
+            size={[640, 480]}
+            mobileSize={[336, 280]}
+          />
+        </div>
         <section className="article-section notes-section">
           {blogPost.disclosures.map((item) => (
             <article className="disclosure-block" key={item.title}>

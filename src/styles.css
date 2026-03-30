@@ -113,13 +113,14 @@ ul {
   justify-content: center;
 }
 
-..hero-ad-wrap .adsbygoogle,
+.hero-ad-wrap .adsbygoogle,
 .inline-ad-wrap .adsbygoogle,
 .hero-ad-wrap .gpt-ad-slot,
 .inline-ad-wrap .gpt-ad-slot,
 .gpt-ad-slot {
   width: 100%;
   min-height: 90px;
+  max-width: 100%;
 }
 
 .hero-ad-wrap .adsbygoogle,
@@ -130,10 +131,10 @@ ul {
 }
 
 .gpt-ad-slot {
-  max-width: 640px;
-  min-height: 480px;
+  max-width: 100%;
+  min-height: auto;
   margin: 0 auto;
-  aspect-ratio: 4 / 3;
+  display: block;
 }
 
 @media (max-width: 720px) {
@@ -143,8 +144,7 @@ ul {
   .inline-ad-wrap .gpt-ad-slot,
   .gpt-ad-slot {
     max-width: 100%;
-    min-height: 280px;
-    aspect-ratio: auto;
+    min-height: auto;
   }
 }
 
