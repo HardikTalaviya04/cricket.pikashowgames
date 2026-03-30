@@ -113,8 +113,10 @@ ul {
   justify-content: center;
 }
 
-.hero-ad-wrap .adsbygoogle,
+..hero-ad-wrap .adsbygoogle,
 .inline-ad-wrap .adsbygoogle,
+.hero-ad-wrap .gpt-ad-slot,
+.inline-ad-wrap .gpt-ad-slot,
 .gpt-ad-slot {
   width: 100%;
   min-height: 90px;
@@ -122,7 +124,8 @@ ul {
 
 .hero-ad-wrap .adsbygoogle,
 .hero-ad-wrap .gpt-ad-slot,
-.inline-ad-wrap .adsbygoogle {
+.inline-ad-wrap .adsbygoogle,
+.inline-ad-wrap .gpt-ad-slot {
   max-width: 728px;
 }
 
@@ -130,17 +133,18 @@ ul {
   max-width: 640px;
   min-height: 480px;
   margin: 0 auto;
-}
-
-.inline-ad-wrap .adsbygoogle {
-  max-width: 728px;
+  aspect-ratio: 4 / 3;
 }
 
 @media (max-width: 720px) {
   .hero-ad-wrap .adsbygoogle,
-  .inline-ad-wrap .adsbygoogle {
+  .hero-ad-wrap .gpt-ad-slot,
+  .inline-ad-wrap .adsbygoogle,
+  .inline-ad-wrap .gpt-ad-slot,
+  .gpt-ad-slot {
     max-width: 100%;
-    min-height: 100px;
+    min-height: 280px;
+    aspect-ratio: auto;
   }
 }
 
