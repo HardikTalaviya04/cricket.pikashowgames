@@ -89,14 +89,14 @@ function App() {
 
       <header className="hero">
         <h1>{blogPost.hero.title}</h1>
-        <div className="hero-ad-wrap">
+        {/* <div className="hero-ad-wrap">
           <GptAdSlot
             divId="gpt-passback-16619"
             slotPath="'/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16619_240326"
             size={[300,250]}
             mobileSize={[300, 250]}
           />
-        </div>
+        </div> */}
         <p className="hero-summary">{blogPost.hero.summary}</p>
         <div className="feature-card-stack" aria-label="Featured image cards">
           {blogPost.featuredCards.map((card, index) => (
