@@ -119,9 +119,14 @@ function App() {
 
   const [clickCount, setClickCount] = useState(0)
   const [interstitialTrigger, setInterstitialTrigger] = useState(0)
+  const [interstitialVisible, setInterstitialVisible] = useState(false)
+
+  const closeInterstitial = useCallback(() => {
+    setInterstitialVisible(false)
+  }, [])
 
   const handlePageClick = useCallback((event) => {
-    if (event.target.closest('.adx-ad-slot, .adx-interstitial-slot')) {
+    if (event.target.closest('.adx-ad-slot, .adx-interstitial-slot, .interstitial-content, .interstitial-close')) {
       return
     }
 
@@ -129,6 +134,7 @@ function App() {
       const next = current + 1
       if (next % 3 === 0) {
         setInterstitialTrigger((value) => value + 1)
+        setInterstitialVisible(true)
       }
       return next
     })
@@ -165,7 +171,18 @@ function App() {
       </header>
 
       <main className="article-flow">
-        <AdxInterstitial {...interstitialConfig} trigger={interstitialTrigger} />
+        {interstitialVisible && (
+          <div className="interstitial-overlay">
+            <div className="interstitial-content">
+              <button className="interstitial-close" onClick={closeInterstitial} aria-label="Close advertisement">
+                ×
+              </button>
+              <div className="interstitial-header">Advertisement</div>
+              <AdxInterstitial {...interstitialConfig} trigger={interstitialTrigger} />
+              <div className="interstitial-footer">Tap the close button to continue</div>
+            </div>
+          </div>
+        )}
 
         <section className="article-section article-intro">
           <div className="adx-ad-wrap">
