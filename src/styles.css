@@ -98,51 +98,46 @@ ul {
   content: none;
 }
 
-.hero-ad-wrap {
-  width: 100%;
-  margin: 0 0 18px;
-  display: flex;
-  justify-content: center;
-}
-
+.adx-ad-wrap,
+.hero-ad-wrap,
 .inline-ad-wrap {
-  width: 100%;
-  margin-top: 14px;
-  padding: 10px 0 0;
+  width: min(100%, 728px);
+  max-width: 100%;
+  margin: 0 auto 24px;
+  padding: 0 12px;
   display: flex;
   justify-content: center;
 }
 
+.adx-ad-slot,
+.gpt-ad-slot,
 .hero-ad-wrap .adsbygoogle,
 .inline-ad-wrap .adsbygoogle,
 .hero-ad-wrap .gpt-ad-slot,
-.inline-ad-wrap .gpt-ad-slot,
-.gpt-ad-slot {
+.inline-ad-wrap .gpt-ad-slot {
   width: 100%;
   min-height: 90px;
   max-width: 100%;
-}
-
-.hero-ad-wrap .adsbygoogle,
-.hero-ad-wrap .gpt-ad-slot,
-.inline-ad-wrap .adsbygoogle,
-.inline-ad-wrap .gpt-ad-slot {
-  max-width: 728px;
-}
-
-.gpt-ad-slot {
-  max-width: 100%;
-  min-height: auto;
   margin: 0 auto;
+}
+
+.adx-ad-slot {
   display: block;
 }
 
 @media (max-width: 720px) {
+  .adx-ad-wrap,
+  .hero-ad-wrap,
+  .inline-ad-wrap {
+    padding: 0 10px;
+  }
+
+  .adx-ad-slot,
+  .gpt-ad-slot,
   .hero-ad-wrap .adsbygoogle,
   .hero-ad-wrap .gpt-ad-slot,
   .inline-ad-wrap .adsbygoogle,
-  .inline-ad-wrap .gpt-ad-slot,
-  .gpt-ad-slot {
+  .inline-ad-wrap .gpt-ad-slot {
     max-width: 100%;
     min-height: auto;
   }

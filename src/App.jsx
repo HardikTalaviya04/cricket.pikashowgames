@@ -138,7 +138,9 @@ function App() {
     <div className="page-shell" onClick={handlePageClick}>
       <header className="hero">
         <h1>{blogPost.hero.title}</h1>
-        <AdxBanner {...adxBanners[0]} />
+        <div className="adx-ad-wrap">
+          <AdxBanner {...adxBanners[0]} />
+        </div>
         <p className="hero-summary">{blogPost.hero.summary}</p>
         <div className="feature-card-stack" aria-label="Featured image cards">
           {blogPost.featuredCards.map((card) => (
@@ -163,7 +165,9 @@ function App() {
         <AdxInterstitial {...interstitialConfig} trigger={interstitialTrigger} />
 
         <section className="article-section article-intro">
-          <AdxBanner {...adxBanners[1]} />
+          <div className="adx-ad-wrap">
+            <AdxBanner {...adxBanners[1]} />
+          </div>
           {blogPost.intro.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
@@ -249,7 +253,9 @@ function App() {
           ))}
         </section>
 
-        <AdxBanner {...adxBanners[2]} />
+        <div className="adx-ad-wrap">
+          <AdxBanner {...adxBanners[2]} />
+        </div>
       </main>
     </div>
   )
