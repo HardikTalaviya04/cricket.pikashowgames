@@ -68,27 +68,31 @@ function AdxBanner({ slotId, unitPath, sizes }) {
   return <div id={slotId} className="adx-ad-slot" style={{ minHeight: '90px', width: '100%' }} />
 }
 
-function AdxInterstitial({ slotId, unitPath, trigger }) {
+function AdxInterstitial({ slotId, unitPath, sizes, trigger }) {
   const slotInitialized = useRef(false)
+  const slotRef = useRef(null)
   useAdxInit()
 
   useEffect(() => {
-    if (!window.googletag || !unitPath || !trigger) {
+    if (!window.googletag || !unitPath) {
       return
     }
 
     window.googletag.cmd.push(() => {
       if (!slotInitialized.current) {
-        window.googletag.defineOutOfPageSlot(unitPath, slotId).addService(window.googletag.pubads())
+        slotRef.current = window.googletag.defineSlot(unitPath, sizes, slotId).addService(window.googletag.pubads())
         enableGptServices()
         slotInitialized.current = true
       }
 
-      window.googletag.display(slotId)
+      if (trigger && slotRef.current) {
+        window.googletag.display(slotId)
+        window.googletag.pubads().refresh([slotRef.current])
+      }
     })
-  }, [slotId, unitPath, trigger])
+  }, [slotId, unitPath, sizes, trigger])
 
-  return <div id={slotId} className="adx-interstitial-slot" />
+  return <div id={slotId} className="adx-interstitial-slot" style={{ minHeight: '360px', width: '100%' }} />
 }
 
 const adxBanners = [
@@ -112,6 +116,7 @@ const adxBanners = [
 const interstitialConfig = {
   slotId: 'gpt-passback-16595',
   unitPath: '/229445249,23315340101/highR_RS88_PikaShow_552_640x480_16595_200326',
+  sizes: [[640, 480], [320, 240], [300, 250]],
 }
 
 function App() {
