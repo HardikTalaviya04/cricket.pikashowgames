@@ -6,9 +6,7 @@ let gptScriptLoaded = false
 let gptServicesEnabled = false
 
 function loadAdxScript() {
-  if (gptScriptLoaded) {
-    return
-  }
+  if (gptScriptLoaded) return
 
   gptScriptLoaded = true
   window.googletag = window.googletag || { cmd: [] }
@@ -16,17 +14,17 @@ function loadAdxScript() {
   const script = document.createElement('script')
   script.async = true
   script.src = ADX_SCRIPT_URL
+  script.crossOrigin = 'anonymous'
   document.head.appendChild(script)
 }
 
 function enableGptServices() {
-  if (gptServicesEnabled || !window.googletag) {
-    return
-  }
+  if (gptServicesEnabled || !window.googletag) return
 
   gptServicesEnabled = true
   window.googletag.cmd.push(() => {
     window.googletag.pubads().enableSingleRequest()
+    window.googletag.pubads().collapseEmptyDivs()
     window.googletag.enableServices()
   })
 }
@@ -35,8 +33,14 @@ function usePageMeta(title, description) {
   useEffect(() => {
     document.title = title
 
-    const meta = document.querySelector('meta[name="description"]')
-    if (meta && description) {
+    let meta = document.querySelector('meta[name="description"]')
+    if (!meta) {
+      meta = document.createElement('meta')
+      meta.name = 'description'
+      document.head.appendChild(meta)
+    }
+
+    if (description) {
       meta.setAttribute('content', description)
     }
   }, [title, description])
@@ -48,75 +52,146 @@ function useAdxInit() {
   }, [])
 }
 
-function AdxBanner({ slotId, unitPath, sizes }) {
+function getBannerSizeMap(googletag) {
+  return googletag
+    .sizeMapping()
+    .addSize([1200, 0], [[970, 250], [728, 90], [300, 250]])
+    .addSize([992, 0], [[728, 90], [300, 250]])
+    .addSize([768, 0], [[728, 90], [468, 60], [300, 250]])
+    .addSize([480, 0], [[320, 100], [320, 50], [300, 250]])
+    .addSize([0, 0], [[320, 100], [320, 50], [300, 250]])
+    .build()
+}
+
+function getPopupSizeMap(googletag) {
+  return googletag
+    .sizeMapping()
+    .addSize([1200, 0], [[640, 480], [300, 250]])
+    .addSize([768, 0], [[640, 480], [320, 240], [300, 250]])
+    .addSize([0, 0], [[320, 240], [300, 250]])
+    .build()
+}
+
+function AdxBanner({ slotId, unitPath }) {
   const slotInitialized = useRef(false)
   useAdxInit()
 
   useEffect(() => {
-    if (!window.googletag || slotInitialized.current || !unitPath) {
-      return
-    }
+    if (!window.googletag || slotInitialized.current || !unitPath) return
 
     window.googletag.cmd.push(() => {
-      window.googletag.defineSlot(unitPath, sizes, slotId).addService(window.googletag.pubads())
+      const slot = window.googletag
+        .defineSlot(
+          unitPath,
+          [
+            [970, 250],
+            [728, 90],
+            [468, 60],
+            [320, 100],
+            [320, 50],
+            [300, 250],
+          ],
+          slotId
+        )
+        ?.defineSizeMapping(getBannerSizeMap(window.googletag))
+        ?.addService(window.googletag.pubads())
+
+      if (!slot) return
+
       enableGptServices()
       window.googletag.display(slotId)
       slotInitialized.current = true
     })
-  }, [slotId, unitPath, sizes])
+  }, [slotId, unitPath])
 
-  return <div id={slotId} className="adx-ad-slot" style={{ minHeight: '90px', width: '100%' }} />
+  return (
+    <div className="adx-banner-shell">
+      <div id={slotId} className="adx-banner-slot" />
+    </div>
+  )
 }
 
-function AdxInterstitial({ slotId, unitPath, sizes, trigger }) {
+function AdxPopupAd({ slotId, unitPath, trigger, visible }) {
   const slotInitialized = useRef(false)
   const slotRef = useRef(null)
+  const [loaded, setLoaded] = useState(false)
+
   useAdxInit()
 
   useEffect(() => {
-    if (!window.googletag || !unitPath) {
-      return
+    if (!window.googletag || !unitPath) return
+
+    const handleRender = (event) => {
+      if (event.slot === slotRef.current) {
+        setLoaded(!event.isEmpty)
+      }
     }
 
     window.googletag.cmd.push(() => {
       if (!slotInitialized.current) {
-        slotRef.current = window.googletag.defineSlot(unitPath, sizes, slotId).addService(window.googletag.pubads())
-        enableGptServices()
-        slotInitialized.current = true
-      }
+        slotRef.current = window.googletag
+          .defineSlot(
+            unitPath,
+            [
+              [640, 480],
+              [320, 240],
+              [300, 250],
+            ],
+            slotId
+          )
+          ?.defineSizeMapping(getPopupSizeMap(window.googletag))
+          ?.addService(window.googletag.pubads())
 
-      if (trigger && slotRef.current) {
+        if (!slotRef.current) return
+
+        window.googletag.pubads().addEventListener('slotRenderEnded', handleRender)
+
+        enableGptServices()
         window.googletag.display(slotId)
+        slotInitialized.current = true
+      } else if (visible && trigger > 0 && slotRef.current) {
+        setLoaded(false)
         window.googletag.pubads().refresh([slotRef.current])
       }
     })
-  }, [slotId, unitPath, sizes, trigger])
 
-  return <div id={slotId} className="adx-interstitial-slot" style={{ minHeight: '360px', width: '100%' }} />
+    return () => {
+      if (window.googletag?.pubads) {
+        try {
+          window.googletag.pubads().removeEventListener('slotRenderEnded', handleRender)
+        } catch (e) {
+          // ignore
+        }
+      }
+    }
+  }, [slotId, unitPath, trigger, visible])
+
+  return (
+    <div className="adx-popup-shell">
+      {!loaded && <div className="adx-popup-loader">Loading advertisement…</div>}
+      <div id={slotId} className="adx-popup-slot" />
+    </div>
+  )
 }
 
 const adxBanners = [
   {
     slotId: 'gpt-passback-16619',
     unitPath: '/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16619_240326',
-    sizes: [[728, 90], [320, 50], [300, 250]],
   },
   {
     slotId: 'gpt-passback-16397',
     unitPath: '/229445249,23315340101/highR_RS88_PikaShow_552_336x280_16397_140226',
-    sizes: [[728, 90], [320, 50], [300, 250]],
   },
   {
     slotId: 'gpt-passback-16596',
     unitPath: '/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16596_200326',
-    sizes: [[728, 90], [320, 50], [300, 250]],
   },
 ]
 
 const interstitialConfig = {
   slotId: 'gpt-passback-16595',
   unitPath: '/229445249,23315340101/highR_RS88_PikaShow_552_640x480_16595_200326',
-  sizes: [[640, 480], [320, 240], [300, 250]],
 }
 
 function App() {
@@ -131,15 +206,19 @@ function App() {
   }, [])
 
   const handlePageClick = useCallback((event) => {
-    if (event.target.closest('.adx-ad-slot, .adx-interstitial-slot, .interstitial-content, .interstitial-close')) {
+    if (
+      event.target.closest(
+        '.adx-banner-slot, .adx-popup-slot, .interstitial-content, .interstitial-close'
+      )
+    ) {
       return
     }
 
     setClickCount((current) => {
       const next = current + 1
       if (next % 3 === 0) {
-        setInterstitialTrigger((value) => value + 1)
         setInterstitialVisible(true)
+        setInterstitialTrigger((value) => value + 1)
       }
       return next
     })
@@ -149,13 +228,16 @@ function App() {
     <div className="page-shell" onClick={handlePageClick}>
       <header className="hero">
         <h1>{blogPost.hero.title}</h1>
+
         <div className="adx-ad-wrap">
           <div className="adx-ad-card">
             <div className="adx-ad-label">Advertisement</div>
             <AdxBanner {...adxBanners[0]} />
           </div>
         </div>
+
         <p className="hero-summary">{blogPost.hero.summary}</p>
+
         <div className="feature-card-stack" aria-label="Featured image cards">
           {blogPost.featuredCards.map((card) => (
             <div key={card.title}>
@@ -179,11 +261,22 @@ function App() {
         {interstitialVisible && (
           <div className="interstitial-overlay">
             <div className="interstitial-content">
-              <button className="interstitial-close" onClick={closeInterstitial} aria-label="Close advertisement">
+              <button
+                className="interstitial-close"
+                onClick={closeInterstitial}
+                aria-label="Close advertisement"
+              >
                 ×
               </button>
+
               <div className="interstitial-header">Advertisement</div>
-              <AdxInterstitial {...interstitialConfig} trigger={interstitialTrigger} />
+
+              <AdxPopupAd
+                {...interstitialConfig}
+                trigger={interstitialTrigger}
+                visible={interstitialVisible}
+              />
+
               <div className="interstitial-footer">Tap the close button to continue</div>
             </div>
           </div>
@@ -196,6 +289,7 @@ function App() {
               <AdxBanner {...adxBanners[1]} />
             </div>
           </div>
+
           {blogPost.intro.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
@@ -213,6 +307,7 @@ function App() {
             ))}
           </div>
         </section>
+
         <div className="adx-ad-wrap">
           <div className="adx-ad-card">
             <div className="adx-ad-label">Advertisement</div>
