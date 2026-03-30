@@ -139,7 +139,10 @@ function App() {
       <header className="hero">
         <h1>{blogPost.hero.title}</h1>
         <div className="adx-ad-wrap">
-          <AdxBanner {...adxBanners[0]} />
+          <div className="adx-ad-card">
+            <div className="adx-ad-label">Advertisement</div>
+            <AdxBanner {...adxBanners[0]} />
+          </div>
         </div>
         <p className="hero-summary">{blogPost.hero.summary}</p>
         <div className="feature-card-stack" aria-label="Featured image cards">
@@ -166,7 +169,10 @@ function App() {
 
         <section className="article-section article-intro">
           <div className="adx-ad-wrap">
-            <AdxBanner {...adxBanners[1]} />
+            <div className="adx-ad-card">
+              <div className="adx-ad-label">Advertisement</div>
+              <AdxBanner {...adxBanners[1]} />
+            </div>
           </div>
           {blogPost.intro.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
@@ -254,7 +260,10 @@ function App() {
         </section>
 
         <div className="adx-ad-wrap">
-          <AdxBanner {...adxBanners[2]} />
+          <div className="adx-ad-card">
+            <div className="adx-ad-label">Advertisement</div>
+            <AdxBanner {...adxBanners[2]} />
+          </div>
         </div>
       </main>
     </div>

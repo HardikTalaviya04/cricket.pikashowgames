@@ -109,6 +109,26 @@ ul {
   justify-content: center;
 }
 
+.adx-ad-card {
+  width: 100%;
+  max-width: 728px;
+  border: 1px solid rgba(24, 34, 48, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 30px rgba(24, 34, 48, 0.08);
+  overflow: hidden;
+}
+
+.adx-ad-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #4b5563;
+  padding: 10px 14px 8px;
+  border-bottom: 1px solid rgba(24, 34, 48, 0.08);
+}
+
 .adx-ad-slot,
 .gpt-ad-slot,
 .hero-ad-wrap .adsbygoogle,
@@ -119,6 +139,10 @@ ul {
   min-height: 90px;
   max-width: 100%;
   margin: 0 auto;
+}
+
+.adx-ad-wrap > .adx-ad-card {
+  display: block;
 }
 
 .adx-ad-slot {
