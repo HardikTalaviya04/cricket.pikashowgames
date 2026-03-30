@@ -1,5 +1,35 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { blogPost } from './data'
+
+const ADX_SCRIPT_URL = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js'
+let gptScriptLoaded = false
+let gptServicesEnabled = false
+
+function loadAdxScript() {
+  if (gptScriptLoaded) {
+    return
+  }
+
+  gptScriptLoaded = true
+  window.googletag = window.googletag || { cmd: [] }
+
+  const script = document.createElement('script')
+  script.async = true
+  script.src = ADX_SCRIPT_URL
+  document.head.appendChild(script)
+}
+
+function enableGptServices() {
+  if (gptServicesEnabled || !window.googletag) {
+    return
+  }
+
+  gptServicesEnabled = true
+  window.googletag.cmd.push(() => {
+    window.googletag.pubads().enableSingleRequest()
+    window.googletag.enableServices()
+  })
+}
 
 function usePageMeta(title, description) {
   useEffect(() => {
@@ -12,94 +42,106 @@ function usePageMeta(title, description) {
   }, [title, description])
 }
 
-function AdBanner({ slot }) {
-  const adRef = useRef(null)
-  const hasPushedRef = useRef(false)
+function useAdxInit() {
+  useEffect(() => {
+    loadAdxScript()
+  }, [])
+}
+
+function AdxBanner({ slotId, unitPath, sizes }) {
+  const slotInitialized = useRef(false)
+  useAdxInit()
 
   useEffect(() => {
-    if (hasPushedRef.current || !adRef.current) {
+    if (!window.googletag || slotInitialized.current || !unitPath) {
       return
     }
 
-    try {
-      ; (window.adsbygoogle = window.adsbygoogle || []).push({})
-      hasPushedRef.current = true
-    } catch (error) {
-      console.error('AdSense error', error)
-    }
-  }, [])
+    window.googletag.cmd.push(() => {
+      window.googletag.defineSlot(unitPath, sizes, slotId).addService(window.googletag.pubads())
+      enableGptServices()
+      window.googletag.display(slotId)
+      slotInitialized.current = true
+    })
+  }, [slotId, unitPath, sizes])
 
-  return (
-    <ins
-      ref={adRef}
-      className="adsbygoogle"
-      style={{ display: 'block' }}
-      data-ad-client="ca-pub-3018701002720211"
-      data-ad-slot={slot}
-      data-ad-format="auto"
-      data-full-width-responsive="true"
-    />
-  )
+  return <div id={slotId} className="adx-ad-slot" style={{ minHeight: '90px', width: '100%' }} />
 }
 
-function loadGptScript() {
-  if (document.querySelector('script[src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"]')) {
-    return
-  }
+function AdxInterstitial({ slotId, unitPath, trigger }) {
+  const slotInitialized = useRef(false)
+  useAdxInit()
 
-  const script = document.createElement('script')
-  script.async = true
-  script.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js'
-  document.head.appendChild(script)
-}
-
-function c({ divId, slotPath, size, mobileSize }) {
   useEffect(() => {
-    window.googletag = window.googletag || { cmd: [] }
-    window.googletag.cmd.push(function () {
-      const slot = window.googletag.defineSlot(slotPath, size, divId)
+    if (!window.googletag || !unitPath || !trigger) {
+      return
+    }
 
-      if (mobileSize) {
-        const sizeMapping = window.googletag
-          .sizeMapping()
-          .addSize([0, 0], mobileSize)
-          .addSize([720, 0], size)
-          .build()
-
-        slot.defineSizeMapping(sizeMapping)
+    window.googletag.cmd.push(() => {
+      if (!slotInitialized.current) {
+        window.googletag.defineOutOfPageSlot(unitPath, slotId).addService(window.googletag.pubads())
+        enableGptServices()
+        slotInitialized.current = true
       }
 
-      slot.addService(window.googletag.pubads())
-      window.googletag.pubads().set('page_url', 'https://www.pikashowgames.com/')
-      window.googletag.enableServices()
-      window.googletag.display(divId)
+      window.googletag.display(slotId)
     })
+  }, [slotId, unitPath, trigger])
 
-    loadGptScript()
-  }, [divId, slotPath, size, mobileSize])
+  return <div id={slotId} className="adx-interstitial-slot" />
+}
 
-  return <div id={divId} className="gpt-ad-slot" />
+const adxBanners = [
+  {
+    slotId: 'gpt-passback-16619',
+    unitPath: '/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16619_240326',
+    sizes: [[728, 90], [320, 50], [300, 250]],
+  },
+  {
+    slotId: 'gpt-passback-16397',
+    unitPath: '/229445249,23315340101/highR_RS88_PikaShow_552_336x280_16397_140226',
+    sizes: [[728, 90], [320, 50], [300, 250]],
+  },
+  {
+    slotId: 'gpt-passback-16596',
+    unitPath: '/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16596_200326',
+    sizes: [[728, 90], [320, 50], [300, 250]],
+  },
+]
+
+const interstitialConfig = {
+  slotId: 'gpt-passback-16595',
+  unitPath: '/229445249,23315340101/highR_RS88_PikaShow_552_640x480_16595_200326',
 }
 
 function App() {
   usePageMeta(blogPost.seoTitle, blogPost.seoDescription)
 
-  return (
-    <div className="page-shell">
+  const [clickCount, setClickCount] = useState(0)
+  const [interstitialTrigger, setInterstitialTrigger] = useState(0)
 
+  const handlePageClick = useCallback((event) => {
+    if (event.target.closest('.adx-ad-slot, .adx-interstitial-slot')) {
+      return
+    }
+
+    setClickCount((current) => {
+      const next = current + 1
+      if (next % 3 === 0) {
+        setInterstitialTrigger((value) => value + 1)
+      }
+      return next
+    })
+  }, [])
+
+  return (
+    <div className="page-shell" onClick={handlePageClick}>
       <header className="hero">
         <h1>{blogPost.hero.title}</h1>
-        <div className="hero-ad-wrap">
-          <GptAdSlot
-            divId="gpt-passback-16619"
-            slotPath="'/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16619_240326"
-            size={[300,250]}
-            mobileSize={[300, 250]}
-          />
-        </div>
+        <AdxBanner {...adxBanners[0]} />
         <p className="hero-summary">{blogPost.hero.summary}</p>
         <div className="feature-card-stack" aria-label="Featured image cards">
-          {blogPost.featuredCards.map((card, index) => (
+          {blogPost.featuredCards.map((card) => (
             <div key={card.title}>
               <section className="feature-card">
                 <div className="feature-card-image-wrap">
@@ -118,15 +160,10 @@ function App() {
       </header>
 
       <main className="article-flow">
+        <AdxInterstitial {...interstitialConfig} trigger={interstitialTrigger} />
+
         <section className="article-section article-intro">
-          <div className="hero-ad-wrap">
-            <GptAdSlot
-              divId="gpt-passback-16397"
-              slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_336x280_16397_140226"
-              size={[336,280]}
-              mobileSize={[336,280]}
-            />
-          </div>
+          <AdxBanner {...adxBanners[1]} />
           {blogPost.intro.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
@@ -190,14 +227,6 @@ function App() {
             ))}
           </div>
         </section>
-        {/* <div className="hero-ad-wrap">
-            <GptAdSlot
-              divId="gpt-passback-16596"
-              slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16596_200326"
-              size={[300,250]}
-              mobileSize={[300, 250]}
-            />
-          </div> */}
 
         <section className="article-section notes-section">
           <p className="section-kicker">Important Notes</p>
@@ -208,7 +237,7 @@ function App() {
             ))}
           </ul>
         </section>
-        
+
         <section className="article-section notes-section">
           {blogPost.disclosures.map((item) => (
             <article className="disclosure-block" key={item.title}>
@@ -219,6 +248,8 @@ function App() {
             </article>
           ))}
         </section>
+
+        <AdxBanner {...adxBanners[2]} />
       </main>
     </div>
   )
