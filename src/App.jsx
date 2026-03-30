@@ -191,6 +191,12 @@ function App() {
             ))}
           </div>
         </section>
+        <div className="adx-ad-wrap">
+          <div className="adx-ad-card">
+            <div className="adx-ad-label">Advertisement</div>
+            <AdxBanner {...adxBanners[2]} />
+          </div>
+        </div>
 
         <section className="article-section">
           <p className="section-kicker">Step By Step</p>
@@ -258,13 +264,6 @@ function App() {
             </article>
           ))}
         </section>
-
-        <div className="adx-ad-wrap">
-          <div className="adx-ad-card">
-            <div className="adx-ad-label">Advertisement</div>
-            <AdxBanner {...adxBanners[2]} />
-          </div>
-        </div>
       </main>
     </div>
   )

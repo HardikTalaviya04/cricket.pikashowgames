@@ -101,7 +101,7 @@ ul {
 .adx-ad-wrap,
 .hero-ad-wrap,
 .inline-ad-wrap {
-  width: min(100%, 728px);
+  width: 100%;
   max-width: 100%;
   margin: 0 auto 24px;
   padding: 0 12px;
@@ -110,8 +110,7 @@ ul {
 }
 
 .adx-ad-card {
-  width: 100%;
-  max-width: 728px;
+  width: min(728px, 100%);
   border: 1px solid rgba(24, 34, 48, 0.12);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.96);
@@ -127,6 +126,7 @@ ul {
   color: #4b5563;
   padding: 10px 14px 8px;
   border-bottom: 1px solid rgba(24, 34, 48, 0.08);
+  text-align: center;
 }
 
 .adx-ad-slot,
@@ -139,6 +139,16 @@ ul {
   min-height: 90px;
   max-width: 100%;
   margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 18px 0;
+}
+
+.adx-ad-slot > *,
+.gpt-ad-slot > * {
+  width: auto;
+  max-width: 100%;
 }
 
 .adx-ad-wrap > .adx-ad-card {
@@ -146,7 +156,7 @@ ul {
 }
 
 .adx-ad-slot {
-  display: block;
+  display: flex;
 }
 
 @media (max-width: 720px) {
