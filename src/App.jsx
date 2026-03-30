@@ -53,7 +53,7 @@ function loadGptScript() {
   document.head.appendChild(script)
 }
 
-function GptAdSlot({ divId, slotPath, size, mobileSize }) {
+function c({ divId, slotPath, size, mobileSize }) {
   useEffect(() => {
     window.googletag = window.googletag || { cmd: [] }
     window.googletag.cmd.push(function () {
@@ -190,6 +190,14 @@ function App() {
             ))}
           </div>
         </section>
+        <div className="hero-ad-wrap">
+            <GptAdSlot
+              divId="gpt-passback-16596"
+              slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_300x250_16596_200326"
+              size={[336, 280]}
+              mobileSize={[300, 250]}
+            />
+          </div>
 
         <section className="article-section notes-section">
           <p className="section-kicker">Important Notes</p>
@@ -200,14 +208,7 @@ function App() {
             ))}
           </ul>
         </section>
-        <div className="hero-ad-wrap">
-          <GptAdSlot
-            divId="gpt-passback-16595"
-            slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_640x480_16595_200326"
-            size={[640, 480]}
-            mobileSize={[336, 280]}
-          />
-        </div>
+        
         <section className="article-section notes-section">
           {blogPost.disclosures.map((item) => (
             <article className="disclosure-block" key={item.title}>
