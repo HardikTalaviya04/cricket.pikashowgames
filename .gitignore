@@ -1,0 +1,62 @@
+# Node modules
+node_modules/
+
+# Vite build outputs
+dist/
+
+# Local env files
+.env
+.env.*
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE/editor files
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Dependency directories
+.pnp/
+.pnp.js
+
+# MacOS files
+.AppleDouble
+.LSOverride
+
+# Temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# test coverage
+coverage/
+
+# parcel cache
+.cache/
+
+# Build files
+build/
+
+# Optional npm cache
+.npm/
+
+# Yarn integrity
+.yarn-integrity
+
+# JetBrains
+.idea/
+
+# Misc
+*.local
