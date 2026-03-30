@@ -2,8 +2,10 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { blogPost } from './data'
 
 const ADX_SCRIPT_URL = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js'
+
 let gptScriptLoaded = false
 let gptServicesEnabled = false
+const definedSlots = new Set()
 
 function loadAdxScript() {
   if (gptScriptLoaded) return
@@ -55,9 +57,9 @@ function useAdxInit() {
 function getBannerSizeMap(googletag) {
   return googletag
     .sizeMapping()
-    .addSize([1200, 0], [[970, 250], [728, 90], [300, 250]])
-    .addSize([992, 0], [[728, 90], [300, 250]])
-    .addSize([768, 0], [[728, 90], [468, 60], [300, 250]])
+    .addSize([1200, 0], [[970, 250], [728, 90]])
+    .addSize([992, 0], [[728, 90], [468, 60]])
+    .addSize([768, 0], [[468, 60], [320, 100]])
     .addSize([480, 0], [[320, 100], [320, 50], [300, 250]])
     .addSize([0, 0], [[320, 100], [320, 50], [300, 250]])
     .build()
@@ -66,110 +68,133 @@ function getBannerSizeMap(googletag) {
 function getPopupSizeMap(googletag) {
   return googletag
     .sizeMapping()
-    .addSize([1200, 0], [[640, 480], [300, 250]])
-    .addSize([768, 0], [[640, 480], [320, 240], [300, 250]])
+    .addSize([1024, 0], [[640, 480], [300, 250]])
+    .addSize([768, 0], [[640, 480], [320, 240]])
     .addSize([0, 0], [[320, 240], [300, 250]])
     .build()
 }
 
 function AdxBanner({ slotId, unitPath }) {
-  const slotInitialized = useRef(false)
-  useAdxInit()
-
-  useEffect(() => {
-    if (!window.googletag || slotInitialized.current || !unitPath) return
-
-    window.googletag.cmd.push(() => {
-      const slot = window.googletag
-        .defineSlot(
-          unitPath,
-          [
-            [970, 250],
-            [728, 90],
-            [468, 60],
-            [320, 100],
-            [320, 50],
-            [300, 250],
-          ],
-          slotId
-        )
-        ?.defineSizeMapping(getBannerSizeMap(window.googletag))
-        ?.addService(window.googletag.pubads())
-
-      if (!slot) return
-
-      enableGptServices()
-      window.googletag.display(slotId)
-      slotInitialized.current = true
-    })
-  }, [slotId, unitPath])
-
-  return (
-    <div className="adx-banner-shell">
-      <div id={slotId} className="adx-banner-slot" />
-    </div>
-  )
-}
-
-function AdxPopupAd({ slotId, unitPath, trigger, visible }) {
-  const slotInitialized = useRef(false)
-  const slotRef = useRef(null)
-  const [loaded, setLoaded] = useState(false)
-
+  const renderedRef = useRef(false)
   useAdxInit()
 
   useEffect(() => {
     if (!window.googletag || !unitPath) return
 
-    const handleRender = (event) => {
-      if (event.slot === slotRef.current) {
-        setLoaded(!event.isEmpty)
-      }
-    }
-
     window.googletag.cmd.push(() => {
-      if (!slotInitialized.current) {
-        slotRef.current = window.googletag
+      if (!definedSlots.has(slotId)) {
+        const slot = window.googletag
           .defineSlot(
             unitPath,
             [
-              [640, 480],
-              [320, 240],
+              [970, 250],
+              [728, 90],
+              [468, 60],
+              [320, 100],
+              [320, 50],
               [300, 250],
             ],
             slotId
           )
-          ?.defineSizeMapping(getPopupSizeMap(window.googletag))
+          ?.defineSizeMapping(getBannerSizeMap(window.googletag))
           ?.addService(window.googletag.pubads())
 
-        if (!slotRef.current) return
-
-        window.googletag.pubads().addEventListener('slotRenderEnded', handleRender)
-
-        enableGptServices()
-        window.googletag.display(slotId)
-        slotInitialized.current = true
-      } else if (visible && trigger > 0 && slotRef.current) {
-        setLoaded(false)
-        window.googletag.pubads().refresh([slotRef.current])
+        if (!slot) return
+        definedSlots.add(slotId)
       }
+
+      enableGptServices()
+
+      if (!renderedRef.current) {
+        window.googletag.display(slotId)
+        renderedRef.current = true
+      } else {
+        const slots = window.googletag.pubads().getSlots()
+        const currentSlot = slots.find((s) => s.getSlotElementId() === slotId)
+        if (currentSlot) {
+          window.googletag.pubads().refresh([currentSlot])
+        }
+      }
+    })
+  }, [slotId, unitPath])
+
+  return (
+    <div className="adx-banner-shell">
+      <div className="adx-banner-inner">
+        <div id={slotId} className="adx-banner-slot" />
+      </div>
+    </div>
+  )
+}
+
+function AdxPopupAd({ slotId, unitPath, openCount, visible }) {
+  const [loading, setLoading] = useState(true)
+  const [instanceKey, setInstanceKey] = useState(0)
+
+  useAdxInit()
+
+  useEffect(() => {
+    if (!visible) return
+    setLoading(true)
+    setInstanceKey((prev) => prev + 1)
+  }, [openCount, visible])
+
+  useEffect(() => {
+    if (!visible || !window.googletag || !unitPath) return
+
+    const dynamicId = `${slotId}-${instanceKey}`
+
+    const onRender = (event) => {
+      if (event.slot?.getSlotElementId() === dynamicId) {
+        setLoading(false)
+      }
+    }
+
+    window.googletag.cmd.push(() => {
+      const existingSlots = window.googletag.pubads().getSlots()
+
+      const oldSlot = existingSlots.find((s) => s.getSlotElementId() === dynamicId)
+      if (oldSlot) {
+        window.googletag.destroySlots([oldSlot])
+      }
+
+      const slot = window.googletag
+        .defineSlot(
+          unitPath,
+          [
+            [640, 480],
+            [320, 240],
+            [300, 250],
+          ],
+          dynamicId
+        )
+        ?.defineSizeMapping(getPopupSizeMap(window.googletag))
+        ?.addService(window.googletag.pubads())
+
+      if (!slot) return
+
+      enableGptServices()
+
+      window.googletag.pubads().addEventListener('slotRenderEnded', onRender)
+      window.googletag.display(dynamicId)
+      window.googletag.pubads().refresh([slot])
     })
 
     return () => {
       if (window.googletag?.pubads) {
         try {
-          window.googletag.pubads().removeEventListener('slotRenderEnded', handleRender)
-        } catch (e) {
-          // ignore
-        }
+          window.googletag.pubads().removeEventListener('slotRenderEnded', onRender)
+        } catch (e) {}
       }
     }
-  }, [slotId, unitPath, trigger, visible])
+  }, [instanceKey, visible, unitPath, slotId])
 
   return (
     <div className="adx-popup-shell">
-      {!loaded && <div className="adx-popup-loader">Loading advertisement…</div>}
-      <div id={slotId} className="adx-popup-slot" />
+      {loading && <div className="adx-popup-loader">Loading advertisement…</div>}
+      <div className="adx-popup-frame">
+        <div id={`${slotId}-${instanceKey}`} className="adx-popup-slot" />
+      </div>
     </div>
   )
 }
@@ -198,7 +223,7 @@ function App() {
   usePageMeta(blogPost.seoTitle, blogPost.seoDescription)
 
   const [clickCount, setClickCount] = useState(0)
-  const [interstitialTrigger, setInterstitialTrigger] = useState(0)
+  const [popupOpenCount, setPopupOpenCount] = useState(0)
   const [interstitialVisible, setInterstitialVisible] = useState(false)
 
   const closeInterstitial = useCallback(() => {
@@ -216,10 +241,12 @@ function App() {
 
     setClickCount((current) => {
       const next = current + 1
+
       if (next % 3 === 0) {
+        setPopupOpenCount((count) => count + 1)
         setInterstitialVisible(true)
-        setInterstitialTrigger((value) => value + 1)
       }
+
       return next
     })
   }, [])
@@ -273,7 +300,7 @@ function App() {
 
               <AdxPopupAd
                 {...interstitialConfig}
-                trigger={interstitialTrigger}
+                openCount={popupOpenCount}
                 visible={interstitialVisible}
               />
 
