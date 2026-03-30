@@ -42,6 +42,33 @@ function AdBanner({ slot }) {
   )
 }
 
+function loadGptScript() {
+  if (document.querySelector('script[src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"]')) {
+    return
+  }
+
+  const script = document.createElement('script')
+  script.async = true
+  script.src = 'https://securepubads.g.doubleclick.net/tag/js/gpt.js'
+  document.head.appendChild(script)
+}
+
+function GptAdSlot({ divId, slotPath, size }) {
+  useEffect(() => {
+    window.googletag = window.googletag || { cmd: [] }
+    window.googletag.cmd.push(function () {
+      window.googletag.defineSlot(slotPath, size, divId).addService(window.googletag.pubads())
+      window.googletag.pubads().set('page_url', 'https://www.pikashowgames.com/')
+      window.googletag.enableServices()
+      window.googletag.display(divId)
+    })
+
+    loadGptScript()
+  }, [divId, slotPath, size])
+
+  return <div id={divId} className="gpt-ad-slot" />
+}
+
 function App() {
   usePageMeta(blogPost.seoTitle, blogPost.seoDescription)
 
@@ -50,7 +77,13 @@ function App() {
 
       <header className="hero">
         <h1>{blogPost.hero.title}</h1>
-        <AdBanner slot="1577997122" />
+        <div className="hero-ad-wrap">
+          <GptAdSlot
+            divId="gpt-passback-16595"
+            slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_640x480_16595_200326"
+            size={[640, 480]}
+          />
+        </div>
         <p className="hero-summary">{blogPost.hero.summary}</p>
         <div className="feature-card-stack" aria-label="Featured image cards">
           {blogPost.featuredCards.map((card, index) => (
@@ -73,7 +106,13 @@ function App() {
 
       <main className="article-flow">
         <section className="article-section article-intro">
-          <AdBanner slot="1595941593" />
+           <div className="hero-ad-wrap">
+          <GptAdSlot
+            divId="gpt-passback-16397"
+            slotPath="/229445249,23315340101/highR_RS88_PikaShow_552_336x280_16397_140226"
+            size={[336,280]}
+          />
+        </div>
           {blogPost.intro.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}

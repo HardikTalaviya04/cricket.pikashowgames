@@ -114,13 +114,22 @@ ul {
 }
 
 .hero-ad-wrap .adsbygoogle,
-.inline-ad-wrap .adsbygoogle {
+.inline-ad-wrap .adsbygoogle,
+.gpt-ad-slot {
   width: 100%;
   min-height: 90px;
 }
 
-.hero-ad-wrap .adsbygoogle {
+.hero-ad-wrap .adsbygoogle,
+.hero-ad-wrap .gpt-ad-slot,
+.inline-ad-wrap .adsbygoogle {
   max-width: 728px;
+}
+
+.gpt-ad-slot {
+  max-width: 640px;
+  min-height: 480px;
+  margin: 0 auto;
 }
 
 .inline-ad-wrap .adsbygoogle {
